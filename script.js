@@ -120,7 +120,6 @@ function renderBalloons() {
   const field = document.getElementById('balloon-field');
   field.innerHTML = '';
   if (data.messages.length === 0) {
-    field.innerHTML = '<div class="empty-state">Belum ada pesan masuk. Yuk minta teman-teman buat ngirim ucapan! 🎈</div>';
     return;
   }
   const total = data.messages.length;
