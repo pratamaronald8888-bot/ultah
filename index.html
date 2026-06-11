@@ -10,6 +10,14 @@
 </head>
 <body>
 
+<!-- LOADING SCREEN -->
+<div id="loading-screen" class="screen">
+  <div style="text-align:center">
+    <div style="font-size:56px;margin-bottom:16px">🎂</div>
+    <p style="color:var(--ink-soft);font-family:'Fredoka',sans-serif;font-size:18px">Memuat...</p>
+  </div>
+</div>
+
 <button class="admin-toggle" onclick="openAdmin()" title="Admin">⚙️</button>
 
 <!-- SCREEN 1: ASK -->
@@ -198,6 +206,9 @@
   </div>
 </div>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
