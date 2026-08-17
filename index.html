@@ -128,8 +128,9 @@
   <div class="login-card">
     <div class="emoji">🔒</div>
     <h3>Masuk Admin</h3>
-    <p>Masukkan password buat akses panel admin</p>
-    <input type="password" id="admin-pass-input" placeholder="Password" onkeydown="if(event.key==='Enter') checkAdminPass()">
+    <p>Masuk memakai akun admin Firebase</p>
+    <input type="email" id="admin-email-input" placeholder="Email admin" autocomplete="username" onkeydown="if(event.key==='Enter') checkAdminPass()">
+    <input type="password" id="admin-pass-input" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') checkAdminPass()">
     <div class="login-error" id="admin-login-error"></div>
     <button class="btn btn-primary btn-small" style="width:100%" onclick="checkAdminPass()">Masuk</button>
   </div>
@@ -203,11 +204,13 @@
       <input type="password" id="admin-newpass-input" placeholder="Password baru...">
     </div>
     <button class="btn btn-secondary btn-small" onclick="changeAdminPass()">Simpan Password</button>
+    <button class="btn btn-secondary btn-small" style="margin-top:10px" onclick="logoutAdmin()">Keluar Admin</button>
   </div>
 </div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="script.js"></script>
 </body>
