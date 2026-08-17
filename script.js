@@ -9,6 +9,7 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
 const APP_DOC = db.collection('app').doc('data');
 
@@ -17,7 +18,6 @@ let data = {
   birthdayName: 'Nama',
   messages: [],
   photos: [],
-  adminPassword: 'admin123',
   profilePhoto: null
 };
 
@@ -38,7 +38,6 @@ async function loadAppData() {
   if (doc.exists) {
     const d = doc.data();
     data.birthdayName = d.birthdayName || 'Nama';
-    data.adminPassword = d.adminPassword || 'admin123';
     data.profilePhoto = d.profilePhoto || null;
     data.photos = d.photos || [];
   } else {
@@ -49,7 +48,6 @@ async function loadAppData() {
 async function saveAppData() {
   await APP_DOC.set({
     birthdayName: data.birthdayName,
-    adminPassword: data.adminPassword,
     profilePhoto: data.profilePhoto || null,
     photos: data.photos
   });
@@ -70,6 +68,9 @@ function listenMessages() {
 
 // ===== INIT =====
 async function init() {
+  auth.onAuthStateChanged(user => {
+    isAdmin = Boolean(user);
+  });
   try {
     await loadAppData();
     listenMessages();
@@ -210,9 +211,11 @@ async function submitMessage() {
 
 // ===== ADMIN =====
 function openAdmin() {
-  if (isAdmin) {
+  if (auth.currentUser) {
+    isAdmin = true;
     showAdminPanel();
   } else {
+    document.getElementById('admin-email-input').value = '';
     document.getElementById('admin-pass-input').value = '';
     document.getElementById('admin-login-error').textContent = '';
     document.getElementById('admin-login').classList.remove('hidden');
@@ -224,15 +227,35 @@ function closeAdminLogin() {
   document.getElementById('admin-login').classList.add('hidden');
 }
 
-function checkAdminPass() {
-  const val = document.getElementById('admin-pass-input').value;
-  if (val === data.adminPassword) {
+async function checkAdminPass() {
+  const email = document.getElementById('admin-email-input').value.trim();
+  const password = document.getElementById('admin-pass-input').value;
+  const errorEl = document.getElementById('admin-login-error');
+  if (!email || !password) {
+    errorEl.textContent = 'Email dan password wajib diisi.';
+    return;
+  }
+
+  errorEl.textContent = 'Sedang masuk...';
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
     isAdmin = true;
+    // Password lama tidak lagi diperlukan dan tidak boleh tersimpan di dokumen publik.
+    await APP_DOC.update({
+      adminPassword: firebase.firestore.FieldValue.delete()
+    }).catch(() => {});
     closeAdminLogin();
     showAdminPanel();
-  } else {
-    document.getElementById('admin-login-error').textContent = 'Password salah, coba lagi.';
+  } catch (error) {
+    isAdmin = false;
+    errorEl.textContent = 'Email atau password salah, atau akun tidak diizinkan.';
   }
+}
+
+async function logoutAdmin() {
+  await auth.signOut();
+  isAdmin = false;
+  closeAdmin();
 }
 
 function showAdminPanel() {
@@ -593,14 +616,19 @@ function cancelBulkDelete(type) {
 
 async function changeAdminPass() {
   const val = document.getElementById('admin-newpass-input').value.trim();
-  if (!val) { alert('Password jangan kosong'); return; }
-  data.adminPassword = val;
+  if (val.length < 6) { alert('Password minimal 6 karakter.'); return; }
+  const user = auth.currentUser;
+  if (!user) { alert('Silakan login ulang sebagai admin.'); return; }
   try {
-    await saveAppData();
+    await user.updatePassword(val);
     document.getElementById('admin-newpass-input').value = '';
     alert('Password admin berhasil diganti!');
   } catch (e) {
-    alert('Gagal simpan password.');
+    if (e.code === 'auth/requires-recent-login') {
+      alert('Demi keamanan, keluar lalu login kembali sebelum mengganti password.');
+    } else {
+      alert('Gagal mengganti password.');
+    }
   }
 }
 
